@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="我们应该在 lab1 学会什么教程的讲述顺序令我看起来实在头大，因此我大概是按照下面的顺序学习 lab1 教程 (guide-book.pdf (buaa.edu.cn))的： MIPS 体系下C程序的编译与链接的过程；操作系统启动基本流程；ELF文件结构；程序是如何在操作系统上执行的； 还有一些细节技能： 阅读 Makefile 的常见语法；了解 lab1 仓库下个目录的作用（结合 Makefi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OS学习_lab1">
+<meta property="og:url" content="http://example.com/2023/03/10/OS%E5%AD%A6%E4%B9%A0-lab1/index.html">
+<meta property="og:site_name" content="Inkarusi&#39;s Blog">
+<meta property="og:description" content="我们应该在 lab1 学会什么教程的讲述顺序令我看起来实在头大，因此我大概是按照下面的顺序学习 lab1 教程 (guide-book.pdf (buaa.edu.cn))的： MIPS 体系下C程序的编译与链接的过程；操作系统启动基本流程；ELF文件结构；程序是如何在操作系统上执行的； 还有一些细节技能： 阅读 Makefile 的常见语法；了解 lab1 仓库下个目录的作用（结合 Makefi">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="c:\Users\hzl\AppData\Roaming\Typora\typora-user-images\image-20230307000504343.png">
+<meta property="og:image" content="c:\Users\hzl\AppData\Roaming\Typora\typora-user-images\image-20230307113508112.png">
+<meta property="article:published_time" content="2023-03-10T02:43:38.000Z">
+<meta property="article:modified_time" content="2023-03-10T02:57:02.004Z">
+<meta property="article:author" content="inkarusi">
+<meta property="article:tag" content="OS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="c:\Users\hzl\AppData\Roaming\Typora\typora-user-images\image-20230307000504343.png">
+
+<link rel="canonical" href="http://example.com/2023/03/10/OS%E5%AD%A6%E4%B9%A0-lab1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>OS学习_lab1 | Inkarusi's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Inkarusi's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">这是一个还没配置好的博客</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/03/10/OS%E5%AD%A6%E4%B9%A0-lab1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="inkarusi">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Inkarusi's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OS学习_lab1
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2023-03-10 10:43:38 / Modified: 10:57:02" itemprop="dateCreated datePublished" datetime="2023-03-10T10:43:38+08:00">2023-03-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/OS/" itemprop="url" rel="index"><span itemprop="name">OS</span></a>
+                </span>
+                  , 
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9B%B4%E6%96%B0%E4%B8%AD/" itemprop="url" rel="index"><span itemprop="name">更新中</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>12k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>11 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="我们应该在-lab1-学会什么"><a href="#我们应该在-lab1-学会什么" class="headerlink" title="我们应该在 lab1 学会什么"></a>我们应该在 lab1 学会什么</h2><p>教程的讲述顺序令我看起来实在头大，因此我大概是按照下面的顺序学习 lab1 教程 (<a target="_blank" rel="noopener" href="http://os.buaa.edu.cn/public/guide-book.pdf">guide-book.pdf (buaa.edu.cn)</a>)的：</p>
+<p>MIPS 体系下C程序的编译与链接的过程；操作系统启动基本流程；ELF文件结构；程序是如何在操作系统上执行的；</p>
+<p>还有一些细节技能：</p>
+<p>阅读 Makefile 的常见语法；了解 lab1 仓库下个目录的作用（结合 Makefile ）；C语言范式编程；…</p>
+<span id="more"></span>
+
+<h3 id="应该让操作系统以怎样的顺序完成启动"><a href="#应该让操作系统以怎样的顺序完成启动" class="headerlink" title="应该让操作系统以怎样的顺序完成启动"></a>应该让操作系统以怎样的顺序完成启动</h3><p>发现内核正确位置 (ksege0) → 让内核加载到那个位置</p>
+<h2 id="一、操作系统的内核及其启动"><a href="#一、操作系统的内核及其启动" class="headerlink" title="一、操作系统的内核及其启动"></a>一、操作系统的内核及其启动</h2><p>为了启动操作系统需要将内核冲虚在计算机上运行起来。内核需要直接与硬件交互来管理各个硬件。</p>
+<p>CPU 不能直接访问磁盘；内存 RAM 是易失性寄存器。CPU 能直接访问的<strong>非易失性寄存器</strong>：ROM（不可写） 和 FLASH（空间限制）。但它们的区域大小优先；操作系统内核在 CPU 加电后直接启动使一个计算机只能启动一个操作系统；硬件相关代码全放在操作系统中不利于操作系统的移植工作。</p>
+<p>因此将<strong>硬件初始化</strong>的相关工作（指令不多）作为**”bootloader**”程序放在非易失存储器中，将操作系统内核放在磁盘中。</p>
+<p>将硬件启动与软件启动分离。bootloader 为硬件初始化，然后将内核镜像从磁盘读到 RAM 中；操作系统内核则专注于软件启动和对用户提供服务的工作。</p>
+<p><img src="C:\Users\hzl\AppData\Roaming\Typora\typora-user-images\image-20230307000504343.png" alt="image-20230307000504343"></p>
+<h2 id="二、MIPS-汇编与-C-语言"><a href="#二、MIPS-汇编与-C-语言" class="headerlink" title="二、MIPS 汇编与 C 语言"></a>二、MIPS 汇编与 C 语言</h2><h4 id="编译与链接"><a href="#编译与链接" class="headerlink" title="编译与链接"></a>编译与链接</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gcc -c test.c -o test.o # 只编译不链接</span><br><span class="line">objdump -DS test.o(或其他要反汇编的文件) &gt; 导出文本文件名 # 反汇编</span><br></pre></td></tr></table></figure>
+
+<p>通过不同阶段的反汇编后文本，我们应该从中理解函数调用时跳转的目的地址变化。</p>
+<p>栈帧：栈帧保存了函数的返回地址和局部变量。函数递归操作过程中，把所有变量和状态压入栈中，返回时再弹出来。每一个栈帧对应一个未运行完的函数。栈帧的作用包括但不限于：存储函数的返回地址、存储调用方的临时变量与 中间结果、向被调用方传递参数。</p>
+<h4 id="LEAF-NESTED-嵌套的-和-END"><a href="#LEAF-NESTED-嵌套的-和-END" class="headerlink" title="LEAF, NESTED (嵌套的) 和 END"></a>LEAF, NESTED (嵌套的) 和 END</h4><p>这些可留到后面理解。</p>
+<p>我们会在 init&#x2F;start.S 里看到 LEAF(_start) 这样的代码。这些宏定义以 <code>.</code> 开头，不是 MIOS 汇编指令，主要用于编译是指定目标代码的生成。</p>
+<p>在 include&#x2F;asm&#x2F;asm.h 中 LEAF, NESTED, END 定义如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">1 /*</span><br><span class="line">2 * LEAF - declare leaf routine</span><br><span class="line">3 */</span><br><span class="line">4 #define LEAF(symbol) \ # 宏定义</span><br><span class="line">5 .globl symbol; \ # 使标签对链接器可见，这样其他文件也可以引用到symbol标签</span><br><span class="line">6 .align 2; \ # 地址按4 Byte对齐</span><br><span class="line">7 .type symbol, @function; \ # 设置标签类别为函数标签</span><br><span class="line">8 .ent symbol; \ # 标记每个函数的开头，要与.end配对使用</span><br><span class="line">9 symbol: \ # 这里是标签</span><br><span class="line">10 .frame sp, 0, ra # sp:访问栈帧的寄存器; 0:栈帧占据的存储空间大小; ra:用于存储函数执行完的返回地址的存储器，表示返回地址存在ra寄存器中(若改为$0,则表示返回地址存在栈帧空间中)</span><br><span class="line">11</span><br><span class="line">12 /*</span><br><span class="line">13 * NESTED - declare nested routine entry point</span><br><span class="line">14 */</span><br><span class="line">15 #define NESTED(symbol, framesize, rpc) \</span><br><span class="line">16 .globl symbol; \</span><br><span class="line">17 .align 2; \</span><br><span class="line">18 .type symbol, @function; \</span><br><span class="line">19 .ent symbol; \</span><br><span class="line">20 symbol: \</span><br><span class="line">21 .frame sp, framesize, rpc # rpc寄存器:return program counter 返回程序计数器。说明NESTED宏在被调用时分配了栈帧的空间用于记录自己的“运行状态”</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">1 #define END(function) \</span><br><span class="line">2 .end function; \ # 与.ent对应</span><br><span class="line">3 .size function,.-function # 标记了function符号占用的存储空间大小，用当前地址减去function标签处地址</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>当使用 LCR 指令执行调用操作时，返回地址将保存在 RPC 寄存器中，而 RPC 中的旧值将保存在堆栈中（以16位方式分两次操作） ，22 位的函数入口地址将被装载到 PC 计数器， 从而使流程转入函数体中运行。当使用 LRETR 指令执行返回操作时，将从 RPC 寄存器中读取返回地址装载到 PC 计数器中，并将堆栈上的值写入 RPC 寄存器中（以16位方式分两次操作）。其他调用指令不使用RPC寄存器。 </p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://blog.csdn.net/LGM_1874/article/details/108404183">DSP TMS320C28x CPU 和指令设置参考【CPU】</a> </p>
+</blockquote>
+<h2 id="三、操作系统的启动"><a href="#三、操作系统的启动" class="headerlink" title="三、操作系统的启动"></a>三、操作系统的启动</h2><p>在 GXemul 中，由于它支持 ELF 格式内核，所以启动流程被简化为：<strong>加载内核到内存，之后跳转到内核的入口</strong>。</p>
+<h3 id="Kernal-：从-Makefile-看目录结构"><a href="#Kernal-：从-Makefile-看目录结构" class="headerlink" title="Kernal ：从 Makefile 看目录结构"></a>Kernal ：从 Makefile 看目录结构</h3><p>来看看顶层 Makefile 的内容：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Main makefile</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"></span></span><br><span class="line"><span class="language-bash"><span class="comment"># Copyright (C) 2007 Beihang University</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Written by Zhu Like ( zlike@cse.buaa.edu.cn )</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"></span></span><br><span class="line"><span class="language-bash"></span></span><br><span class="line">drivers_dir	  := drivers # 赋值符号，对变量的定义语句</span><br><span class="line">boot_dir	  := boot</span><br><span class="line">init_dir	  := init</span><br><span class="line">lib_dir		  := lib</span><br><span class="line">tools_dir	  := tools</span><br><span class="line">test_dir	  := </span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">上面定义了各种文件夹名称</span></span><br><span class="line">vmlinux_elf	  := gxemul/vmlinux</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">这个是我们最终需要生成的内核elf文件</span></span><br><span class="line">link_script   := $(tools_dir)/scse0_3.lds #链接用的脚本，指导连接器将多个.o文件链接成目标可执行的脚本</span><br><span class="line"></span><br><span class="line">modules		  := boot drivers init lib # modules定义了内核所包含的所有模块</span><br><span class="line">objects		  := $(boot_dir)/start.o			  \ # objects表示要编译出内核所依赖的所有.o文件；\表示这一行没有结束，下一行的内容和这一行是连在一起的，提高了文件的可读性</span><br><span class="line">				 $(init_dir)/main.o			  \</span><br><span class="line">				 $(init_dir)/init.o			  \</span><br><span class="line">			   	 $(drivers_dir)/gxconsole/console.o \</span><br><span class="line">				 $(lib_dir)/*.o				  \</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">定义了需要生成的各种文件</span></span><br><span class="line"></span><br><span class="line">.PHONY: all $(modules) clean # 表明列在其后的目标不受修改时间的约束。即，一旦该规则被调用，无视make工具编译时有关时间戳的性质，无论依赖文件是否被修改，一定保证它被执行</span><br><span class="line"></span><br><span class="line">all: $(modules) vmlinux #我们的“最终目标”，其中列出的dependencies表明构建整个项目依赖于构建好所有的模块以及vmlinunx</span><br><span class="line"></span><br><span class="line">vmlinux: $(modules) # vmlinux的构建依赖于所有的模块</span><br><span class="line"><span class="meta prompt_">	$</span><span class="language-bash">(LD) -o $(vmlinux_elf) -N -T $(link_script) $(objects) <span class="comment"># 调用了链接器将之前构建的各模块产生的所有.o问年间在linker script的指导下链接到一起，产生最终的vmlinux可执行文件</span></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">#注意,这里调用了一个叫做$(LD)的程序</span></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">(modules): <span class="comment"># 定义了每个模块的构建方法是调用对应模块目录下的Makefile</span></span></span><br><span class="line"><span class="meta prompt_">	$</span><span class="language-bash">(MAKE) --directory=<span class="variable">$@</span></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入各个子文件夹进行make</span></span><br><span class="line"></span><br><span class="line">clean: # 40-45行定义了如何清理所有被构建出来的文件</span><br><span class="line">	for d in $(modules);	\</span><br><span class="line">		do					\</span><br><span class="line"><span class="meta prompt_">			$</span><span class="language-bash">(MAKE) --directory=$<span class="variable">$d</span> clean; \</span></span><br><span class="line"><span class="language-bash">		<span class="keyword">done</span>; \</span></span><br><span class="line"><span class="language-bash">	<span class="built_in">rm</span> -rf *.o *~ $(vmlinux_elf)</span></span><br><span class="line"></span><br><span class="line">include include.mk</span><br></pre></td></tr></table></figure>
+
+<p>上面是学长的 Makefile 内容。21届好像变了，如下：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span> <span class="keyword">include</span>.mk</span><br><span class="line">mos_elf := target/mos <span class="comment"># 最终需要生成的 ELF 可执行文件</span></span><br><span class="line">modules := lib init kern</span><br><span class="line">objects := lib/*.o \</span><br><span class="line">init/init.o init/start.o \</span><br><span class="line">kern/*.o <span class="comment"># 定义了需要生成的目标文件</span></span><br><span class="line">link_script := kernel.lds</span><br><span class="line">gxemul_flags += -T -C R3000 -M 64</span><br><span class="line"></span><br><span class="line"><span class="meta"><span class="keyword">.PHONY</span>: all $(modules) clean # 无论依赖文件是否被修改，一定保证它被执行(无视 make 工具编译时有关时间戳的性质)</span></span><br><span class="line"></span><br><span class="line"><span class="section">all: <span class="variable">$(mos_elf)</span> # 我们的“最终目标”，即内核可执行文件</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$(mos_elf)</span>: <span class="variable">$(modules)</span> <span class="comment"># 调用链接器 $(LD) 链接所有目标文件</span></span><br><span class="line"><span class="variable">$(LD)</span> -o <span class="variable">$(mos_elf)</span> -N -T <span class="variable">$(link_script)</span> <span class="variable">$(objects)</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$(modules)</span>: <span class="comment"># 进入各个子目录进行 make</span></span><br><span class="line"><span class="variable">$(MAKE)</span> --directory=<span class="variable">$@</span></span><br><span class="line"></span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">for d in <span class="variable">$(modules)</span>; do \</span><br><span class="line"><span class="variable">$(MAKE)</span> --directory=$$d clean; \</span><br><span class="line">done; \</span><br><span class="line">rm -rf *.o *~ <span class="variable">$(mos_elf)</span></span><br><span class="line"></span><br><span class="line"><span class="section">run:</span></span><br><span class="line">gxemul <span class="variable">$(gxemul_flags)</span> <span class="variable">$(mos_elf)</span></span><br></pre></td></tr></table></figure>
+
+<p>对于 Makefile 部分语法的解释：</p>
+<blockquote>
+<p>这里:&#x3D;其实是阻塞赋值</p>
+<ol>
+<li><p>“&#x3D;”</p>
+<p>make会将整个makefile展开后，再决定变量的值。也就是说，变量的值将会是整个makefile中最后被指定的值。看例子：</p>
+<p>x &#x3D; foo  y &#x3D; $(x) bar  x &#x3D; xyz</p>
+<p>在上例中，y的值将会是 xyz bar ，而不是 foo bar 。</p>
+</li>
+<li><p>“:&#x3D;”</p>
+<p>“:&#x3D;”表示变量的值决定于它在makefile中的位置，而不是整个makefile展开后的最终值。</p>
+<p>x :&#x3D; foo  y :&#x3D; $(x) bar  x :&#x3D; xyz</p>
+<p>在上例中，y的值将会是 foo bar ，而不是 xyz bar 了。</p>
+</li>
+</ol>
+</blockquote>
+<ul>
+<li>drivers</li>
+<li>boot</li>
+<li>include ：目录中存放系统头文件。在本章中需要用到的头文件是 mmu.h 文件，这个文件中 有一张内存布局图，我们在填写 linker script 的时候需要根据这个图来设置相应节的加载 地址。</li>
+<li>init ：<strong>内核中各模块的初始化</strong>部分都会在这里被调用。目录中主要有两个代码文件 start.S 和 init.c，其作用是初始化内核。<strong>start.S 文件中的 _start 函数</strong>是 CPU 控制权被转交给内核后执行的第一个函数，主要工作是初始化 CPU 和栈指针，为之后的内核初始化做准备，最后跳转到 <strong>init.c 文件中定义的 mips_init 函数</strong></li>
+<li>lib ：存放常用<strong>库函数</strong></li>
+<li>kern ：存放内核的主体代码</li>
+<li>tools</li>
+<li>mos_elf ：最终生成的内核可执行文件的路径。$(mos_elf) 是我们的“最终目标”，即内核可执行文件</li>
+<li>gxemul&#x2F;vmlinux</li>
+<li>link_script ：链接器。记录了各个节应该如何映射到段，以及各个段应该被加载到的位置。通过自定义可以将编译生成的程序中各个节的位置。是编译内核必要的。</li>
+<li><strong>modules</strong> ：表示要编译出内核所依赖的所有目标文件（*.o）。</li>
+<li><strong>objects</strong> ：定义了内核所包含的所有模块。这里 Makefile 引用了 init, lib, kern 三个目录下的部分文件。</li>
+</ul>
+<p>不要着急执行 make 命令，因为我们还没做好正确配置。若不慎执行，请使用 make clean 还原。最后配置正确了再执行 make 可以在 target 目录下生成内核镜像文件 mos。</p>
+<h3 id="ELF-文件结构"><a href="#ELF-文件结构" class="headerlink" title="ELF 文件结构"></a>ELF 文件结构</h3><p>发现了一个特别好的博客：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/AndroidBinary/p/15360056.html">ELF文件格式-第一讲，详解程序文件头 - Android_IBinary - 博客园 (cnblogs.com)</a></p>
+<p>ELF 是一种用于可执行文件、目标文件和库的文件格式。通过 <code>file &lt;file&gt;</code> 可以获取文件类型。</p>
+<ul>
+<li>可重定位 (relocatable) 文件，</li>
+<li>可执行 (executable) 文件，</li>
+<li>共享对象 (shared object) 文件，后两种文件都需要链接器对可重定位文件进行处理才能生成。</li>
+</ul>
+<p>ELF 文件的5个部分：</p>
+<ul>
+<li><p>ELF 头。以 typedef struct 结构体的形式存储程序（ELF文件）的基本信息：比如体系结构和操作系统，同时也包含了节头表和段头表 相对文件的偏移量（offset）等。假设 binary 为 ELF 的文件头地址，shoff 为节头表入口偏移，那么 <strong>binary + shoff 即为节头表第一项的地址</strong>。</p>
+</li>
+<li><p>段头表&#x2F;程序头表（program header table）。其信息在程序运行时刻使用。包含程序各段（segment）信息。</p>
+</li>
+<li><p>节头表（section header table）。其信息在程序编译和链接时使用。包含个节（section）信息。</p>
+</li>
+<li><p>段头表各表项。记录了该段数据载入内存时的目标位置等</p>
+</li>
+<li><p>节头表各表项。有很多节头，记录了该节程序的代码段、数据段等各个段的内容</p>
+<blockquote>
+<p>重要的有这3个：</p>
+<p>.text 保存可执行文件的操作指令。</p>
+<p>.data 保存已初始化的全局变量和静态变量。</p>
+<p>.bss 保存未初始化的全局变量和静态变量。</p>
+</blockquote>
+</li>
+</ul>
+<p>可以视为一个节头表存了很多节头结构体？每个结构体存储对应的节部分的信息。</p>
+<p><img src="C:\Users\hzl\AppData\Roaming\Typora\typora-user-images\image-20230307113508112.png" alt="image-20230307113508112"></p>
+<p>下面是课程组提供的个简易的对 32-bit little-endian ELF 文件的解析程序 .&#x2F;tools&#x2F;readelf&#x2F;elf.h （它自己也是ELF文件吗）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 文件的前面是各种变量类型定义，在此省略 */</span></span><br><span class="line"><span class="comment">/* The ELF file header. This appears at the start of every ELF file. */</span></span><br><span class="line"><span class="comment">/* ELF 文件的文件头。所有的 ELF 文件均以此为起始 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> EI_NIDENT (16)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> e_ident[EI_NIDENT]; <span class="comment">/* Magic number and other info */</span></span><br><span class="line">    <span class="comment">// 存放魔数以及其他信息</span></span><br><span class="line">    Elf32_Half e_type; <span class="comment">/* Object file type */</span></span><br><span class="line">    <span class="comment">// 文件类型</span></span><br><span class="line">    Elf32_Half e_machine; <span class="comment">/* Architecture */</span></span><br><span class="line">    <span class="comment">// 机器架构</span></span><br><span class="line">    Elf32_Word e_version; <span class="comment">/* Object file version */</span></span><br><span class="line">    <span class="comment">// 文件版本</span></span><br><span class="line">    Elf32_Addr e_entry; <span class="comment">/* Entry point virtual address */</span></span><br><span class="line">    <span class="comment">// 入口点的虚拟地址</span></span><br><span class="line">    Elf32_Off e_phoff; <span class="comment">/* Program header table file offset */</span></span><br><span class="line">    <span class="comment">// 程序头表所在处与此文件头的偏移</span></span><br><span class="line">    Elf32_Off e_shoff; <span class="comment">/* Section header table file offset */</span></span><br><span class="line">    <span class="comment">// 节头表所在处与此文件头的偏移</span></span><br><span class="line">    Elf32_Word e_flags; <span class="comment">/* Processor-specific flags */</span></span><br><span class="line">    <span class="comment">// 针对处理器的标记</span></span><br><span class="line">    Elf32_Half e_ehsize; <span class="comment">/* ELF header size in bytes */</span></span><br><span class="line">    <span class="comment">// ELF 文件头的大小（单位为字节）</span></span><br><span class="line">    Elf32_Half e_phentsize; <span class="comment">/* Program header table entry size */</span></span><br><span class="line">    <span class="comment">// 程序头表入口大小</span></span><br><span class="line">    Elf32_Half e_phnum; <span class="comment">/* Program header table entry count */</span></span><br><span class="line">    <span class="comment">// 程序头表入口数</span></span><br><span class="line">    Elf32_Half e_shentsize; <span class="comment">/* Section header table entry size */</span></span><br><span class="line">    <span class="comment">// 节头表入口大小</span></span><br><span class="line">    Elf32_Half e_shnum; <span class="comment">/* Section header table entry count */</span></span><br><span class="line">    <span class="comment">// 节头表入口数</span></span><br><span class="line">    Elf32_Half e_shstrndx; <span class="comment">/* Section header string table index */</span></span><br><span class="line">    <span class="comment">// 节头字符串编号</span></span><br><span class="line">&#125; Elf32_Ehdr;</span><br></pre></td></tr></table></figure>
+
+<p>需要关注的自定义变量：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Elf32_Half // uint16_t, Type for a 16-bit quanStity</span><br><span class="line">Elf32_Addr // uint32_t, Type of address</span><br><span class="line">Elf32_Ehdr // ELF表头结构体</span><br><span class="line">Elf32_Shdr // 节表头结构体</span><br><span class="line">Elf32_Phdr // 段表头结构体</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>section entry size 和 section size 的区别：</p>
+<p>目录自带的 readelf 命令行：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">readelf -S &lt;file&gt; # section headers</span><br><span class="line">readelf -l &lt;file&gt; # program headers</span><br></pre></td></tr></table></figure>
+
+<p>在做题的过程中，感觉节头表是连续的 Section segment header 结构体组成的。这几个结构体描述程序被分成的各个节的信息，结构体里的 sh_addr 就指向它们，因此这些结构体可以看作各节入口。有几个结构体，结构体大小，第一个结构体地址相对于 ELF 文件头地址的偏移，ELF 文件头地址都存在 ELF 文件头结构体的信息中。</p>
+<p>在作业中，注意赋值时指针的类型要相同！如果是 void * 指针，好像不用类型转化也可以和其它类型指针相加。</p>
+<h3 id="从程序头地址到-MIPS-内存布局"><a href="#从程序头地址到-MIPS-内存布局" class="headerlink" title="从程序头地址到 MIPS 内存布局"></a>从程序头地址到 MIPS 内存布局</h3><p>用 <code>readelf -l &lt;file&gt;</code> 可以得到程序的程序头各信息（与作业的 <code>./readelf &lt;file&gt;</code> 结果对比），如：</p>
+<blockquote>
+<p>Offset 代表该段（segment）的数据相对于 ELF 文件的偏移。VirtAddr 代表该段最终需要被加载到内存的哪个位置。FileSiz 代表该段的数据在文件中的长度。MemSiz 代表该段的数据在内存中所应当占的大小。表下方的 Section to Segment mapping 表明每个段各自含有的节。</p>
+</blockquote>
+<p>而内核作为可执行文件，我们也应该将它的程序头表（段头表各表项以结构体形式储存）的各表项地址放在正确的位置。这样内核才能运行起来。lab1 在MIPS体系结构下。</p>
+<p>程序使用地址：</p>
+<p>处理器发往总线的地址：</p>
+<p>MMU (Memory Management Unit) 完成地址转换。</p>
+<ul>
+<li><p>kuseg (2 GB) ：用户，cache，MMU中TLB变换</p>
+</li>
+<li><p>kseg0 (512 MB) ：内核下直接映射，cache。存储内核的 .text, .data, .bss 段。include&#x2F;mmu.h 中的 KERNBASE (0x8001 0000) 是内核镜像的起始虚拟地址。</p>
+</li>
+<li><p>kseg1 (512 MB) ：内核下直接映射，访问外设，MMIO (Memory-Mapped I&#x2F;O) 技术。存储其中的 bootloader 在载入内核前进行 cache 初始化工作。</p>
+</li>
+<li><p>kseg2 (1 GB) ：内核态下，MMU TLB，cache</p>
+</li>
+</ul>
+<p>编译器生成的各 ELF 文件已经记录了各节要被加载到的位置，各 ELF 文件被链接器链接生成可执行文件。链接器记录了各节应该如何映射到段，以及各段应该被加载到的位置。因此控制链接器过程来控制各段地址。</p>
+<p>通过 Linker Script 调整各节位置。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">SECTIONS</span><br><span class="line">&#123;</span><br><span class="line">. = 0x10000; # .是定位计数器，根据输出节的大小增长</span><br><span class="line">.text : &#123; *(.text) &#125; # *是通配符，匹配所有相应的节</span><br><span class="line">. = 0x8000000; # lab1要求.data和.bss紧跟.text即可</span><br><span class="line">.data : &#123; *(.data) &#125; # 表示将所有文件的.data节都放到(左边的).data节中</span><br><span class="line">.bss : &#123; *(.bss) &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="生成内核文件"><a href="#生成内核文件" class="headerlink" title="生成内核文件"></a>生成内核文件</h3><figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">all: <span class="variable">$(mos_elf)</span></span></span><br><span class="line"></span><br><span class="line"><span class="variable">$(mos_elf)</span>: <span class="variable">$(modules)</span></span><br><span class="line">	<span class="variable">$(LD)</span> -o <span class="variable">$(mos_elf)</span> -N -T <span class="variable">$(link_script)</span> <span class="variable">$(objects)</span> <span class="comment"># $(LD)为调用链接器; -o -T → 使用$(link_script)将$(objects)链接，输出到$(mos_elf)位置</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$(modules)</span>:</span><br><span class="line">	<span class="variable">$(MAKE)</span> --directory=<span class="variable">$@</span></span><br></pre></td></tr></table></figure>
+
+<p>之后就可以在 $(mos_elf) 下查看到内核文件，并输入命令运行内核。</p>
+<p>生成内核的入口在 kernel.lds 文件的 ENTRY(_start) 这一行。</p>
+<ol>
+<li>文件开头用 EXPORT(_start) 的 .&#x2F;init&#x2F;start.S 文件：设置内核栈空间地址，随后跳转到 mips_init 函数（C语言文件中）；</li>
+<li>.&#x2F;init&#x2F;init.c 中有 void mips_init() 函数；</li>
+</ol>
+<blockquote>
+<p>coekjan 学长（助教）在讨论区提醒：弄清<strong>体系结构和程序</strong>之间的关系。</p>
+<p>一个程序想要运行：</p>
+<ol>
+<li>如果是裸机程序，则需要对应体系结构的 CPU。运行时把它放到内存的特定位置（这是 bootloader 的活），让 CPU 找到他去运行，我们的 MOS 内核就是这样被运行的。</li>
+<li>如果不是裸机程序，则需要对应体系结构的 CPU，需要有 OS、用户库的支撑，OS 帮你去找到他然后去运行（运行过程可能依赖用户库）。</li>
+</ol>
+</blockquote>
+<h3 id="GXemul-学习"><a href="#GXemul-学习" class="headerlink" title="GXemul 学习"></a>GXemul 学习</h3><p>实验平台上可以用 gxemul 命令行运行这个用于模拟所需硬件环境的计算机架构模拟器。它可以帮助我们运行与调试MIPS体系架构下的代码。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gxemul -E testmips -C R3000 -M 64 hello</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gxemul -E testmips -C R3000 -M 64 -V hello</span></span><br></pre></td></tr></table></figure>
+
+<p>模拟器类型（-E）；CPU类型（-C）；模拟的内存大小（-M）；</p>
+<p>进入调试模式（-V）</p>
+<h4 id="常用功能介绍"><a href="#常用功能介绍" class="headerlink" title="常用功能介绍"></a>常用功能介绍</h4><p>端点，单步执行（指令级别），反汇编，内存导出</p>
+<h2 id="四、实战-printk"><a href="#四、实战-printk" class="headerlink" title="四、实战 printk"></a>四、实战 printk</h2><p>需要掌握的C语言知识</p>
+<p>函数参数列表：末尾有省略号时，表明该函数有变长的参数表。传入函数的可能有多个参数表，每个参数表都要有固定的起始位置，因此只能让最后一个参数表长度不定。</p>
+<ol>
+<li>va_list，变长参数表的变量类型；保有 va_start 、 va_arg 、 va_end 及 va_copy 所需信息 (typedef)</li>
+<li>va_start(va_list ap, lastarg)，用于初始化变长参数表的宏；令函数得以访问可变参数；lastarg 为该函数最后一个命名的形式参数，具体是什么可以看看示例，因为我也说不清</li>
+<li>va_arg(va_list ap, 类型)，用于取变长参数表下一个参数的宏；在初始化后，每次可以使用 va_arg 宏 按获取一个形式参数，该宏也会同时修改 ap 使得下次被调用将返回当前获取参数的下一个参数</li>
+<li>va_end(va_list ap)，结束使用变长参数表的宏。</li>
+</ol>
+<p>使用示例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">printk</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *fmt, ...)</span> &#123;</span><br><span class="line">    va_list ap;</span><br><span class="line">    va_start(ap, fmt);</span><br><span class="line">    vprintfmt(outputk, <span class="literal">NULL</span>, fmt, ap);</span><br><span class="line">    va_end(ap);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">outputk</span><span class="params">(<span class="type">void</span> *data, <span class="type">const</span> <span class="type">char</span> *buf, <span class="type">size_t</span> len)</span> &#123;</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">		printcharc(buf[i]);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">/*size_t *cnt_ptr = data; // void*可以泛型转换</span></span><br><span class="line"><span class="comment">	*cnt_ptr += len;</span></span><br><span class="line"><span class="comment">	*/</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*或者*/</span></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">printk</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *fmt, ...)</span> &#123;</span><br><span class="line">	<span class="type">size_t</span> cnt;</span><br><span class="line">	va_list ap;</span><br><span class="line">	va_start(ap, fmt);</span><br><span class="line">	vprintfmt(outputk, &amp;cnt, fmt, ap);</span><br><span class="line">	<span class="keyword">return</span> cnt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*一个标准的使用示例，参考链接：https://zh.cppreference.com/w/c/variadic*/</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdarg.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="type">void</span> <span class="title function_">simple_printf</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* fmt, ...)</span></span><br><span class="line">&#123;</span><br><span class="line">    va_list args;</span><br><span class="line">    va_start(args, fmt);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">while</span> (*fmt != <span class="string">&#x27;\0&#x27;</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (*fmt == <span class="string">&#x27;d&#x27;</span>) &#123;</span><br><span class="line">            <span class="type">int</span> i = va_arg(args, <span class="type">int</span>);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>, i);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (*fmt == <span class="string">&#x27;c&#x27;</span>) &#123;</span><br><span class="line">            <span class="comment">// 将提升 &#x27;char&#x27; 类型值为 &#x27;int&#x27;</span></span><br><span class="line">            <span class="comment">// C 中字符常量自身为 &#x27;int&#x27; 类型</span></span><br><span class="line">            <span class="type">int</span> c = va_arg(args, <span class="type">int</span>);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;%c\n&quot;</span>, c);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (*fmt == <span class="string">&#x27;f&#x27;</span>) &#123;</span><br><span class="line">            <span class="type">double</span> d = va_arg(args, <span class="type">double</span>);</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;%f\n&quot;</span>, d);</span><br><span class="line">        &#125;</span><br><span class="line">        ++fmt;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    va_end(args);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    simple_printf(<span class="string">&quot;dcff&quot;</span>, <span class="number">3</span>, <span class="string">&#x27;a&#x27;</span>, <span class="number">1.999</span>, <span class="number">42.5</span>); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>作业过程中令人迷惑的点：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap); // fmt_callback_t 是什么？看样子是传入了一个输出字符的函数</span><br><span class="line">// const char *fmt 又是什么？</span><br><span class="line">// va_list ap 实际上也不是很懂，不过这个的用法比较固定，所以问题还不大</span><br><span class="line">// 看kern/printc里面传入的void *data是NULL，这又什么意义吗？</span><br><span class="line"></span><br><span class="line">void outputk(void *data, const char *buf, size_t len); // 这个打印字符串的危险函数里也没用到void *data</span><br></pre></td></tr></table></figure>
+
+<p>现在来解答部分令人迷惑的问题：</p>
+<p>一个重要的知识点就是<a target="_blank" rel="noopener" href="https://blog.csdn.net/seanwang_25/article/details/26283015">C和C++中泛型编程</a>（比如可以用于适应不同类型参数的函数）。比较常见的泛型编程有C++种的template方法，而这里着重讲一下C语言。</p>
+<p>C语言中泛型编程要用到 void *（指向任意类型的指针，之后在函数中再转化类型）。而且在函数中，由于无法对void *直接解引用（?），函数还需要额外传入 size 参数标示出 void * 指向的数据类型的大小。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">swap</span><span class="params">(<span class="type">void</span> * a, <span class="type">void</span> * b, <span class="type">int</span> size)</span>&#123;</span><br><span class="line">    <span class="type">char</span> * tmp = <span class="built_in">malloc</span>(size * <span class="keyword">sizeof</span>(<span class="type">char</span>));</span><br><span class="line">    <span class="built_in">memcpy</span>(tmp, a, size * <span class="keyword">sizeof</span>(<span class="type">char</span>));</span><br><span class="line">    <span class="built_in">memcpy</span>(a, b, size * <span class="keyword">sizeof</span>(<span class="type">char</span>));</span><br><span class="line">    <span class="built_in">memcpy</span>(b, tmp, size * <span class="keyword">sizeof</span>(<span class="type">char</span>));</span><br><span class="line">    <span class="built_in">free</span>(tmp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>一些注意点：</p>
+<ul>
+<li>变量不能声明为 void 无类型；</li>
+<li>不能将 <code>*</code> 用在无类型指针上，因为系统没有此地址指向对象大小的信息（编译阶段，编译器无法得知该传入参数类型）。这也是为什么我们需要在调用的地方传入要交换的对象的地址空间大小 size；</li>
+</ul>
+<p>令一个例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span>* <span class="title function_">lsearch</span><span class="params">(<span class="type">void</span>* key, <span class="type">void</span> *base, <span class="type">int</span> n, <span class="type">int</span> elemSize)</span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n; ++i)&#123;</span><br><span class="line">        <span class="type">void</span> *elemAddr = (<span class="type">char</span> *)base+i*elemSize; <span class="comment">// 这里将数组首地址强制转换为指向char类型的指针，是利用char类型大小为1字节的特性，这样就能实现指针的正确偏移</span></span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">memcmp</span>(key, elemAddr, elemSize) == <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span> elemAddr;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="我遇到的问题"><a href="#我遇到的问题" class="headerlink" title="我遇到的问题"></a>我遇到的问题</h3><ol>
+<li><p>实现 “flush the string found so far” 时，使用 <code>./lib/print.c</code> 自带的 print_str() 函数，<strong>会把 <code>%5d</code> 之类的信息一起输出</strong>，至今不知道为什么。但换成 void vprintfmt() 传入的 fmt_callback_t out 参数（实际上传入了 <code>kern/printk.c</code> 里的 void outputk() 函数），就不会出现这个问题。看 print_str 的实现和区别在哪啊。。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">print_str(out, data, fmt, fmt_tmp-fmt, <span class="number">1</span>); <span class="comment">// wrong answer</span></span><br><span class="line">out(data, fmt, fmt_tmp - fmt); </span><br></pre></td></tr></table></figure></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OS/" rel="tag"># OS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/02/28/vim%E4%BD%BF%E7%94%A8/" rel="prev" title="vim使用">
+      <i class="fa fa-chevron-left"></i> vim使用
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%91%E4%BB%AC%E5%BA%94%E8%AF%A5%E5%9C%A8-lab1-%E5%AD%A6%E4%BC%9A%E4%BB%80%E4%B9%88"><span class="nav-number">1.</span> <span class="nav-text">我们应该在 lab1 学会什么</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BA%94%E8%AF%A5%E8%AE%A9%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%BB%A5%E6%80%8E%E6%A0%B7%E7%9A%84%E9%A1%BA%E5%BA%8F%E5%AE%8C%E6%88%90%E5%90%AF%E5%8A%A8"><span class="nav-number">1.1.</span> <span class="nav-text">应该让操作系统以怎样的顺序完成启动</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%86%85%E6%A0%B8%E5%8F%8A%E5%85%B6%E5%90%AF%E5%8A%A8"><span class="nav-number">2.</span> <span class="nav-text">一、操作系统的内核及其启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81MIPS-%E6%B1%87%E7%BC%96%E4%B8%8E-C-%E8%AF%AD%E8%A8%80"><span class="nav-number">3.</span> <span class="nav-text">二、MIPS 汇编与 C 语言</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E4%B8%8E%E9%93%BE%E6%8E%A5"><span class="nav-number">3.0.1.</span> <span class="nav-text">编译与链接</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LEAF-NESTED-%E5%B5%8C%E5%A5%97%E7%9A%84-%E5%92%8C-END"><span class="nav-number">3.0.2.</span> <span class="nav-text">LEAF, NESTED (嵌套的) 和 END</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%90%AF%E5%8A%A8"><span class="nav-number">4.</span> <span class="nav-text">三、操作系统的启动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Kernal-%EF%BC%9A%E4%BB%8E-Makefile-%E7%9C%8B%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="nav-number">4.1.</span> <span class="nav-text">Kernal ：从 Makefile 看目录结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ELF-%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84"><span class="nav-number">4.2.</span> <span class="nav-text">ELF 文件结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E7%A8%8B%E5%BA%8F%E5%A4%B4%E5%9C%B0%E5%9D%80%E5%88%B0-MIPS-%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="nav-number">4.3.</span> <span class="nav-text">从程序头地址到 MIPS 内存布局</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E5%86%85%E6%A0%B8%E6%96%87%E4%BB%B6"><span class="nav-number">4.4.</span> <span class="nav-text">生成内核文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GXemul-%E5%AD%A6%E4%B9%A0"><span class="nav-number">4.5.</span> <span class="nav-text">GXemul 学习</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD%E4%BB%8B%E7%BB%8D"><span class="nav-number">4.5.1.</span> <span class="nav-text">常用功能介绍</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E5%AE%9E%E6%88%98-printk"><span class="nav-number">5.</span> <span class="nav-text">四、实战 printk</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%88%91%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">5.1.</span> <span class="nav-text">我遇到的问题</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">inkarusi</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">inkarusi</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="Symbols count total">13k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">12 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
