@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.16.0' # 自己正在使用的node版本即可
-      # - run: node -v # 查看node版本号
+      - run: node -v # 查看node版本号
       # 缓存依赖项: https://docs.github.com/cn/actions/using-workflows/caching-dependencies-to-speed-up-workflows
       - name: Cache NPM dependencies
         uses: actions/cache@v4
@@ -45,6 +45,7 @@ jobs:
           npm install -S semver
           npm install --save bulma-stylus hexo-component-inferno
           npm install -S  hexo-renderer-inferno
+          # npm install --save bulma-stylus@0.8.0
       - name: Look Dir List
         run: tree -L 3 -a
       # - name: clean theme cache
