@@ -43,9 +43,8 @@ jobs:
         run: |
           npm install
           npm install -S semver
-          npm install --save bulma-stylus hexo-component-inferno
+          npm install --save bulma-stylus@0.8.0 hexo-component-inferno
           npm install -S  hexo-renderer-inferno
-          # npm install --save bulma-stylus@0.8.0
       - name: Look Dir List
         run: tree -L 3 -a
       # - name: clean theme cache
