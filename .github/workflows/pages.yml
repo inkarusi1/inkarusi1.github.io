@@ -47,8 +47,8 @@ jobs:
           npm install -S  hexo-renderer-inferno
       - name: Look Dir List
         run: tree -L 3 -a
-      - name: clean theme cache
-        run: git rm -f --cached themes/icarus
+      # - name: clean theme cache
+      #   run: git rm -f --cached themes/icarus
         # run: git submodule deinit themes/icarus && git rm themes/icarus
       # 安装主题
       - name: Install Theme
